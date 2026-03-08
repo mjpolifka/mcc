@@ -1,8 +1,9 @@
 export class ArchidektError extends Error {
-  constructor(reason) {
-    super(`Archidekt error: ${reason}`);
+  constructor(reason, detail) {
+    super(`Archidekt error: ${reason}${detail ? ` (${detail})` : ''}`);
     this.name = 'ArchidektError';
     this.reason = reason;
+    this.detail = detail;
   }
 }
 

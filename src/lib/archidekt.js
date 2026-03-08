@@ -42,8 +42,13 @@ async function archidektFetch(path, retries = 2, attempt = 0) {
       throw error;
     }
 
+    const looksLikeCors = error instanceof TypeError;
+    const detail = looksLikeCors
+      ? 'request blocked before response (likely CORS for this origin); try running through a same-origin proxy or deployed domain'
+      : 'unable to reach Archidekt API';
+
     if (attempt >= retries) {
-      throw new ArchidektError('network');
+      throw new ArchidektError('network', detail);
     }
 
     await sleep(250 * (attempt + 1));

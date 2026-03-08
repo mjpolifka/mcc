@@ -159,9 +159,8 @@ function HistoryRow({ mode, r, onSubmit }) {
   );
 }
 
-function EntryPage({ onSubmit, history }) {
+function EntryPage({ onSubmit, history, mode, onModeChange }) {
   const [val, setVal] = useState('');
-  const [mode, setMode] = useState('deck');
 
   const modes = [
     { id: 'card', label: 'Card' },
@@ -201,7 +200,7 @@ function EntryPage({ onSubmit, history }) {
             <button
               key={m.id}
               onClick={() => {
-                setMode(m.id);
+                onModeChange(m.id);
                 setVal('');
               }}
               style={{
@@ -352,6 +351,13 @@ function ResultsView({ audit, onBack }) {
   );
 }
 
+function formatAuditError(err) {
+  if (!err) return 'unknown';
+  if (err.reason === 'network' && err.detail) return `network — ${err.detail}`;
+  if (err.reason === 'network') return 'network — unable to reach API (could be CORS in browser)';
+  return err.reason || String(err.message || 'unknown');
+}
+
 function useAuditController({ onCompleteHistory }) {
   const [phase, setPhase] = useState('idle');
   const [title, setTitle] = useState('');
@@ -414,7 +420,7 @@ function useAuditController({ onCompleteHistory }) {
     setError('');
 
     const onError = (err) => {
-      runError = err?.reason || 'unknown';
+      runError = formatAuditError(err);
       setError(runError);
       setPhase('done');
     };
@@ -533,6 +539,7 @@ function useAuditController({ onCompleteHistory }) {
 export default function App() {
   const [view, setView] = useState('entry');
   const [history, setHistory] = useState(loadHistory);
+  const [entryMode, setEntryMode] = useState('card');
 
   useEffect(() => {
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
@@ -548,6 +555,7 @@ export default function App() {
   const audit = useAuditController({ onCompleteHistory: addHistory });
 
   const handleSubmit = async (mode, value, nameHint) => {
+    setEntryMode(mode);
     setView('results');
     await audit.run(mode, value, nameHint);
   };
@@ -567,7 +575,7 @@ export default function App() {
       </div>
 
       <div style={{ padding: '0 32px' }}>
-        {view === 'entry' && <EntryPage onSubmit={handleSubmit} history={history} />}
+        {view === 'entry' && <EntryPage onSubmit={handleSubmit} history={history} mode={entryMode} onModeChange={setEntryMode} />}
         {view === 'results' && <ResultsView audit={audit} onBack={() => setView('entry')} />}
       </div>
     </div>
