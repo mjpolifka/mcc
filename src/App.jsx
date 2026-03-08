@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { auditCard, auditDeck, auditFolder, auditUser } from './lib/audit';
 
 const t = {
@@ -19,7 +19,7 @@ const t = {
   warningSoft: '#1c1400',
 };
 
-const HISTORY = {
+const DEFAULT_HISTORY = {
   card: [
     { id: 'Sol Ring', name: 'Sol Ring', banned: true, ts: 'Today, 9:41 AM' },
     { id: 'Command Tower', name: 'Command Tower', banned: false, ts: 'Today, 9:39 AM' },
@@ -37,6 +37,40 @@ const HISTORY = {
     { id: 'spellslinger', name: 'spellslinger', deckCount: 7, banned: 5, ts: 'Feb 20' },
   ],
 };
+
+const HISTORY_STORAGE_KEY = 'mcc-history-v1';
+
+function formatTimestamp(date = new Date()) {
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) {
+      return DEFAULT_HISTORY;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return DEFAULT_HISTORY;
+    }
+
+    return {
+      card: Array.isArray(parsed.card) ? parsed.card : DEFAULT_HISTORY.card,
+      deck: Array.isArray(parsed.deck) ? parsed.deck : DEFAULT_HISTORY.deck,
+      folder: Array.isArray(parsed.folder) ? parsed.folder : DEFAULT_HISTORY.folder,
+      user: Array.isArray(parsed.user) ? parsed.user : DEFAULT_HISTORY.user,
+    };
+  } catch {
+    return DEFAULT_HISTORY;
+  }
+}
 
 function StatusPill({ status }) {
   const map = {
@@ -125,7 +159,7 @@ function HistoryRow({ mode, r, onSubmit }) {
   );
 }
 
-function EntryPage({ onSubmit }) {
+function EntryPage({ onSubmit, history }) {
   const [val, setVal] = useState('');
   const [mode, setMode] = useState('deck');
 
@@ -225,8 +259,8 @@ function EntryPage({ onSubmit }) {
         {historyLabel}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {HISTORY[mode].map((r) => (
-          <HistoryRow key={`${mode}-${r.id}`} mode={mode} r={r} onSubmit={onSubmit} />
+        {history[mode].map((r, idx) => (
+          <HistoryRow key={`${mode}-${r.id}-${idx}`} mode={mode} r={r} onSubmit={onSubmit} />
         ))}
       </div>
     </div>
@@ -318,7 +352,7 @@ function ResultsView({ audit, onBack }) {
   );
 }
 
-function useAuditController() {
+function useAuditController({ onCompleteHistory }) {
   const [phase, setPhase] = useState('idle');
   const [title, setTitle] = useState('');
   const [rows, setRows] = useState([]);
@@ -364,8 +398,15 @@ function useAuditController() {
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
+    const timestamp = formatTimestamp();
+    let runDeckCount = 0;
+    let runTitle = nameHint || value;
+    let runTotalCards = 0;
+    let runTotals = { banned: 0, legal: 0, failed: 0 };
+    let runError = '';
+
     setPhase('running');
-    setTitle(nameHint || value);
+    setTitle(runTitle);
     setRows([]);
     setTotals({ banned: 0, legal: 0, failed: 0 });
     setProcessed(0);
@@ -373,7 +414,8 @@ function useAuditController() {
     setError('');
 
     const onError = (err) => {
-      setError(err?.reason || 'unknown');
+      runError = err?.reason || 'unknown';
+      setError(runError);
       setPhase('done');
     };
 
@@ -385,10 +427,23 @@ function useAuditController() {
             setRows([{ name: cardName, status }]);
             return;
           }
+
           setRows([{ name: cardName, status }]);
           setProcessed(1);
-          setTotals({ banned: status === 'banned' ? 1 : 0, legal: status === 'legal' ? 1 : 0, failed: status === 'failed' ? 1 : 0 });
+          runTotals = {
+            banned: status === 'banned' ? 1 : 0,
+            legal: status === 'legal' ? 1 : 0,
+            failed: status === 'failed' ? 1 : 0,
+          };
+          setTotals(runTotals);
           setPhase('done');
+
+          onCompleteHistory('card', {
+            id: cardName,
+            name: cardName,
+            banned: status === 'banned',
+            ts: timestamp,
+          });
         },
       });
       return;
@@ -399,16 +454,30 @@ function useAuditController() {
         signal: abortRef.current.signal,
         onError,
         onDeckInfo: (info) => {
-          setTitle(`${info.name}`);
+          runTitle = info.name;
+          runTotalCards = info.totalCards;
+          setTitle(info.name);
           setTotal(info.totalCards);
         },
         onCardResult: ({ cardName, status }) => {
           if (abortRef.current.signal.aborted) return;
           pushRow(cardName, status);
         },
-        onComplete: () => {
-          if (!abortRef.current.signal.aborted) setPhase('done');
+        onComplete: (totalsFromAudit) => {
+          runTotals = totalsFromAudit;
+          if (!abortRef.current.signal.aborted) {
+            setTotals(totalsFromAudit);
+            setPhase('done');
+          }
         },
+      });
+
+      onCompleteHistory('deck', {
+        id: value,
+        name: runTitle,
+        banned: runTotals.banned,
+        total: runTotalCards,
+        ts: timestamp,
       });
       return;
     }
@@ -418,7 +487,10 @@ function useAuditController() {
     await runGroup(value, {
       signal: abortRef.current.signal,
       onError,
-      onFolderInfo: (info) => setTitle(`${info.name}`),
+      onFolderInfo: (info) => {
+        runTitle = info.name;
+        setTitle(info.name);
+      },
       onDeckStart: ({ name }) => {
         if (abortRef.current.signal.aborted) return;
         setRows((prev) => [...prev, { name: `Deck: ${name}`, status: 'checking' }]);
@@ -428,6 +500,13 @@ function useAuditController() {
         pushRow(`${deckName} · ${cardName}`, status);
       },
       onDeckComplete: ({ deckName, banned, legal, failed }) => {
+        runDeckCount += 1;
+        runTotals = {
+          banned: runTotals.banned + banned,
+          legal: runTotals.legal + legal,
+          failed: runTotals.failed + failed,
+        };
+
         if (abortRef.current.signal.aborted) return;
         setRows((prev) => [...prev, { name: `${deckName} complete (${banned}/${legal}/${failed})`, status: 'legal' }]);
       },
@@ -435,7 +514,17 @@ function useAuditController() {
 
     if (!abortRef.current.signal.aborted) {
       setPhase('done');
+      setTotals(runTotals);
     }
+
+    onCompleteHistory(mode, {
+      id: value,
+      name: runTitle,
+      deckCount: runDeckCount,
+      banned: runTotals.banned,
+      ts: timestamp,
+      error: runError,
+    });
   };
 
   return { phase, title, rows, totals, processed, total, error, run, cancel, reset };
@@ -443,7 +532,20 @@ function useAuditController() {
 
 export default function App() {
   const [view, setView] = useState('entry');
-  const audit = useAuditController();
+  const [history, setHistory] = useState(loadHistory);
+
+  useEffect(() => {
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  }, [history]);
+
+  const addHistory = (mode, entry) => {
+    setHistory((prev) => ({
+      ...prev,
+      [mode]: [entry, ...prev[mode]],
+    }));
+  };
+
+  const audit = useAuditController({ onCompleteHistory: addHistory });
 
   const handleSubmit = async (mode, value, nameHint) => {
     setView('results');
@@ -465,7 +567,7 @@ export default function App() {
       </div>
 
       <div style={{ padding: '0 32px' }}>
-        {view === 'entry' && <EntryPage onSubmit={handleSubmit} />}
+        {view === 'entry' && <EntryPage onSubmit={handleSubmit} history={history} />}
         {view === 'results' && <ResultsView audit={audit} onBack={() => setView('entry')} />}
       </div>
     </div>

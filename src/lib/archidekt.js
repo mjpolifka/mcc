@@ -1,16 +1,32 @@
 import { ArchidektError } from './errors';
 
-const BASE_URL = 'https://archidekt.com/api';
+const BASE_URLS = [
+  'https://api.archidekt.com',
+  'https://archidekt.com/api',
+];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function archidektFetch(path, retries = 2, attempt = 0) {
-  const url = `${BASE_URL}${path}`;
+async function fetchFromAnyBase(path) {
+  let lastError = null;
 
+  for (const baseUrl of BASE_URLS) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`);
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('No Archidekt base URL reachable');
+}
+
+async function archidektFetch(path, retries = 2, attempt = 0) {
   try {
-    const response = await fetch(url);
+    const response = await fetchFromAnyBase(path);
 
     if (response.status === 404 || response.status === 403) {
       throw new ArchidektError('not_found');
@@ -36,7 +52,8 @@ async function archidektFetch(path, retries = 2, attempt = 0) {
 }
 
 function parseDeckCards(payload) {
-  // Expected deck shape includes cards: [{ quantity, card: { oracleCard: { name } } }]
+  // Expected shape from Archidekt deck response:
+  // cards: [{ quantity, card: { oracleCard: { name } } }]
   if (!Array.isArray(payload?.cards)) {
     throw new ArchidektError('api_changed');
   }
@@ -89,7 +106,7 @@ export async function getFolder(folderId) {
 export async function getUserDecks(username) {
   const payload = await archidektFetch(`/users/${encodeURIComponent(username)}/decks/`);
 
-  // Expected user deck listing is paginated: { results: [{ id, name, updatedAt|updated_at }] }
+  // Expected paginated shape: { results: [{ id, name, updatedAt|updated_at }] }
   if (!Array.isArray(payload?.results)) {
     throw new ArchidektError('api_changed');
   }
