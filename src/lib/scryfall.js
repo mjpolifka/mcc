@@ -4,6 +4,7 @@ import { db } from './db';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CACHE_TTL_MS = 30 * DAY_MS;
 const UA = 'MiddleClassCommander/1.0 (https://github.com/example/mcc)';
+const SCRYFALL_PROXY_BASE = '/api/scryfall';
 
 const bannedSetCodes = new Set(
   setData.sets
@@ -11,17 +12,34 @@ const bannedSetCodes = new Set(
     .map((entry) => entry.code.toLowerCase()),
 );
 
+const inFlightByCardName = new Map();
+
 const queueState = {
   queue: [],
   active: 0,
-  maxConcurrent: 5,
-  minDelayMs: 100,
+  maxConcurrent: 2,
+  minDelayMs: 130,
   lastStartAt: 0,
   pumping: false,
 };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildScryfallUrl(path) {
+  return `${SCRYFALL_PROXY_BASE}${path}`;
+}
+
+function getRetryDelayMs(response, attempt, baseDelayMs) {
+  const retryAfterHeader = response?.headers?.get?.('Retry-After');
+  const retryAfterSeconds = Number(retryAfterHeader);
+
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0) {
+    return retryAfterSeconds * 1000;
+  }
+
+  return 2 ** attempt * baseDelayMs;
 }
 
 function pumpQueue() {
@@ -75,10 +93,10 @@ function enqueueRequest(executor) {
   });
 }
 
-async function scryfallFetch(url, retries = 3, attempt = 0) {
+async function scryfallFetch(path, retries = 4, attempt = 0) {
   try {
     const response = await enqueueRequest(() =>
-      fetch(url, {
+      fetch(buildScryfallUrl(path), {
         headers: {
           'User-Agent': UA,
         },
@@ -94,8 +112,8 @@ async function scryfallFetch(url, retries = 3, attempt = 0) {
         return { failed: 'rate_limited' };
       }
 
-      await sleep(2 ** attempt * 350);
-      return scryfallFetch(url, retries, attempt + 1);
+      await sleep(getRetryDelayMs(response, attempt, 400));
+      return scryfallFetch(path, retries, attempt + 1);
     }
 
     if (!response.ok) {
@@ -108,8 +126,8 @@ async function scryfallFetch(url, retries = 3, attempt = 0) {
       return { failed: 'network' };
     }
 
-    await sleep(2 ** attempt * 250);
-    return scryfallFetch(url, retries, attempt + 1);
+    await sleep(2 ** attempt * 300);
+    return scryfallFetch(path, retries, attempt + 1);
   }
 }
 
@@ -135,7 +153,7 @@ export async function checkForSetListUpdatesIfStale() {
     return;
   }
 
-  const setListResponse = await scryfallFetch('https://api.scryfall.com/sets');
+  const setListResponse = await scryfallFetch('/sets');
   if (!setListResponse || setListResponse.failed || !Array.isArray(setListResponse.data)) {
     return;
   }
@@ -149,19 +167,9 @@ export async function checkForSetListUpdatesIfStale() {
   await db.setListMeta.put({ key: 'lastSetCheck', checkedAt: new Date().toISOString() });
 }
 
-export async function checkCard(cardName) {
-  const normalized = normalizeCardName(cardName);
-  if (!normalized) {
-    return { result: 'failed', reason: 'not_found' };
-  }
-
-  const cached = await db.cardCache.get(normalized);
-  if (cacheStillValid(cached)) {
-    return { result: cached.result, printings: cached.printings };
-  }
-
-  const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`!"${normalized}"`)}&unique=prints&order=released`;
-  const payload = await scryfallFetch(url);
+async function checkCardUncached(normalized) {
+  const path = `/cards/search?q=${encodeURIComponent(`!\"${normalized}\"`)}&unique=prints&order=released`;
+  const payload = await scryfallFetch(path);
 
   if (payload?.failed) {
     return { result: 'failed', reason: payload.failed };
@@ -199,4 +207,28 @@ export async function checkCard(cardName) {
   });
 
   return { result, printings };
+}
+
+export async function checkCard(cardName) {
+  const normalized = normalizeCardName(cardName);
+  if (!normalized) {
+    return { result: 'failed', reason: 'not_found' };
+  }
+
+  const cached = await db.cardCache.get(normalized);
+  if (cacheStillValid(cached)) {
+    return { result: cached.result, printings: cached.printings };
+  }
+
+  const inFlight = inFlightByCardName.get(normalized);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const lookupPromise = checkCardUncached(normalized).finally(() => {
+    inFlightByCardName.delete(normalized);
+  });
+
+  inFlightByCardName.set(normalized, lookupPromise);
+  return lookupPromise;
 }

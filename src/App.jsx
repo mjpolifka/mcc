@@ -266,8 +266,21 @@ function EntryPage({ onSubmit, history, mode, onModeChange }) {
   );
 }
 
+function formatFailureReason(reason) {
+  if (!reason) return '';
+
+  const map = {
+    rate_limited: 'Rate limited by Scryfall (retrying may help)',
+    network: 'Network/proxy request failed',
+    not_found: 'Card not found in Scryfall',
+    api_changed: 'Unexpected API response',
+  };
+
+  return map[reason] || reason;
+}
+
 function ResultsView({ audit, onBack }) {
-  const { phase, title, rows, totals, processed, total, cancel, reset, error } = audit;
+  const { phase, title, subtitle, rows, totals, processed, total, cancel, reset, error } = audit;
 
   const progress = total === 0 ? 0 : Math.round((processed / total) * 100);
   const done = phase === 'done';
@@ -296,7 +309,8 @@ function ResultsView({ audit, onBack }) {
         </button>
 
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, color: t.text, marginBottom: 6 }}>{title || 'Running audit…'}</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: t.text, marginBottom: 2 }}>{title || 'Running audit…'}</div>
+          {subtitle && <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 6 }}>{subtitle}</div>}
           <ProgressBar value={progress} done={done} />
           <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: t.textMuted }}>{processed}/{total} checked</span>
@@ -342,7 +356,14 @@ function ResultsView({ audit, onBack }) {
             <span style={{ fontSize: 11, color: t.textMuted, width: 30, flexShrink: 0, fontFamily: "'JetBrains Mono', monospace" }}>
               {String(i + 1).padStart(2, '0')}
             </span>
-            <span style={{ flex: 1, fontSize: 14, color: t.text }}>{row.name}</span>
+            <span style={{ flex: 1, fontSize: 14, color: t.text }}>
+              {row.name}
+              {row.status === 'failed' && row.reason && (
+                <span style={{ display: 'block', fontSize: 11, color: t.textMuted, marginTop: 2 }}>
+                  {formatFailureReason(row.reason)}
+                </span>
+              )}
+            </span>
             <StatusPill status={row.status} />
           </div>
         ))}
@@ -362,6 +383,7 @@ function useAuditController({ onCompleteHistory }) {
   const [phase, setPhase] = useState('idle');
   const [title, setTitle] = useState('');
   const [rows, setRows] = useState([]);
+  const [subtitle, setSubtitle] = useState('');
   const [totals, setTotals] = useState({ banned: 0, legal: 0, failed: 0 });
   const [processed, setProcessed] = useState(0);
   const [total, setTotal] = useState(0);
@@ -377,8 +399,8 @@ function useAuditController({ onCompleteHistory }) {
     }));
   };
 
-  const pushRow = (name, status) => {
-    setRows((prev) => [...prev, { name, status }]);
+  const pushRow = (name, status, reason) => {
+    setRows((prev) => [...prev, { name, status, reason }]);
     setProcessed((value) => value + (status === 'checking' ? 0 : 1));
     if (status !== 'checking') {
       bumpTotals(status);
@@ -389,6 +411,7 @@ function useAuditController({ onCompleteHistory }) {
     setPhase('idle');
     setTitle('');
     setRows([]);
+    setSubtitle('');
     setTotals({ banned: 0, legal: 0, failed: 0 });
     setProcessed(0);
     setTotal(0);
@@ -414,6 +437,7 @@ function useAuditController({ onCompleteHistory }) {
     setPhase('running');
     setTitle(runTitle);
     setRows([]);
+    setSubtitle('');
     setTotals({ banned: 0, legal: 0, failed: 0 });
     setProcessed(0);
     setTotal(0);
@@ -428,13 +452,13 @@ function useAuditController({ onCompleteHistory }) {
     if (mode === 'card') {
       setTotal(1);
       await auditCard(value, {
-        onResult: ({ cardName, status }) => {
+        onResult: ({ cardName, status, reason }) => {
           if (status === 'checking') {
-            setRows([{ name: cardName, status }]);
+            setRows([{ name: cardName, status, reason }]);
             return;
           }
 
-          setRows([{ name: cardName, status }]);
+          setRows([{ name: cardName, status, reason }]);
           setProcessed(1);
           runTotals = {
             banned: status === 'banned' ? 1 : 0,
@@ -463,11 +487,12 @@ function useAuditController({ onCompleteHistory }) {
           runTitle = info.name;
           runTotalCards = info.totalCards;
           setTitle(info.name);
+          setSubtitle(`Deck ID ${info.id}`);
           setTotal(info.totalCards);
         },
-        onCardResult: ({ cardName, status }) => {
+        onCardResult: ({ cardName, status, reason }) => {
           if (abortRef.current.signal.aborted) return;
-          pushRow(cardName, status);
+          pushRow(cardName, status, reason);
         },
         onComplete: (totalsFromAudit) => {
           runTotals = totalsFromAudit;
@@ -496,14 +521,19 @@ function useAuditController({ onCompleteHistory }) {
       onFolderInfo: (info) => {
         runTitle = info.name;
         setTitle(info.name);
+        if (mode === 'folder') {
+          setSubtitle(`Folder ID ${info.id}`);
+        } else {
+          setSubtitle(`User ${info.name}`);
+        }
       },
       onDeckStart: ({ name }) => {
         if (abortRef.current.signal.aborted) return;
         setRows((prev) => [...prev, { name: `Deck: ${name}`, status: 'checking' }]);
       },
-      onDeckCardResult: ({ deckName, cardName, status }) => {
+      onDeckCardResult: ({ deckName, cardName, status, reason }) => {
         if (abortRef.current.signal.aborted) return;
-        pushRow(`${deckName} · ${cardName}`, status);
+        pushRow(`${deckName} · ${cardName}`, status, reason);
       },
       onDeckComplete: ({ deckName, banned, legal, failed }) => {
         runDeckCount += 1;
@@ -533,7 +563,7 @@ function useAuditController({ onCompleteHistory }) {
     });
   };
 
-  return { phase, title, rows, totals, processed, total, error, run, cancel, reset };
+  return { phase, title, subtitle, rows, totals, processed, total, error, run, cancel, reset };
 }
 
 export default function App() {

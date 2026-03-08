@@ -28,7 +28,8 @@ async function auditDeckCards(cardNames, { onCardResult, signal }) {
       }
 
       const status = result?.result ?? 'failed';
-      onCardResult?.({ cardName, status });
+      const reason = result?.reason;
+      onCardResult?.({ cardName, status, reason });
 
       if (status === 'banned') {
         totals.banned += 1;
