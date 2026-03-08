@@ -28,6 +28,7 @@ function pumpQueue() {
   if (queueState.pumping) {
     return;
   }
+
   queueState.pumping = true;
 
   const tick = async () => {
@@ -45,6 +46,7 @@ function pumpQueue() {
 
       queueState.lastStartAt = Date.now();
       queueState.active += 1;
+
       next()
         .catch(() => null)
         .finally(() => {
@@ -63,12 +65,12 @@ function enqueueRequest(executor) {
   return new Promise((resolve, reject) => {
     queueState.queue.push(async () => {
       try {
-        const value = await executor();
-        resolve(value);
+        resolve(await executor());
       } catch (error) {
         reject(error);
       }
     });
+
     pumpQueue();
   });
 }
@@ -91,6 +93,7 @@ async function scryfallFetch(url, retries = 3, attempt = 0) {
       if (attempt >= retries) {
         return { failed: 'rate_limited' };
       }
+
       await sleep(2 ** attempt * 350);
       return scryfallFetch(url, retries, attempt + 1);
     }
@@ -100,10 +103,11 @@ async function scryfallFetch(url, retries = 3, attempt = 0) {
     }
 
     return response.json();
-  } catch (error) {
+  } catch {
     if (attempt >= retries) {
       return { failed: 'network' };
     }
+
     await sleep(2 ** attempt * 250);
     return scryfallFetch(url, retries, attempt + 1);
   }
@@ -125,7 +129,7 @@ function cacheStillValid(entry) {
   return notExpired && versionMatches;
 }
 
-async function checkSetFreshness() {
+export async function checkForSetListUpdatesIfStale() {
   const meta = await db.setListMeta.get('lastSetCheck');
   if (meta?.checkedAt && Date.now() - new Date(meta.checkedAt).getTime() < DAY_MS) {
     return;
@@ -146,8 +150,6 @@ async function checkSetFreshness() {
 }
 
 export async function checkCard(cardName) {
-  await checkSetFreshness();
-
   const normalized = normalizeCardName(cardName);
   if (!normalized) {
     return { result: 'failed', reason: 'not_found' };

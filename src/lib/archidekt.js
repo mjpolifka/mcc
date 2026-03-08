@@ -35,29 +35,24 @@ async function archidektFetch(path, retries = 2, attempt = 0) {
   }
 }
 
-function parseDeckCards(rawDeck) {
-  const cardRows = Array.isArray(rawDeck?.cards)
-    ? rawDeck.cards
-    : Array.isArray(rawDeck?.cardMap)
-      ? rawDeck.cardMap
-      : null;
-
-  if (!cardRows) {
+function parseDeckCards(payload) {
+  // Expected deck shape includes cards: [{ quantity, card: { oracleCard: { name } } }]
+  if (!Array.isArray(payload?.cards)) {
     throw new ArchidektError('api_changed');
   }
 
-  return cardRows
-    .map((row) => {
-      const quantity = row?.quantity ?? row?.qty ?? row?.amount ?? 1;
-      const name = row?.card?.oracleCard?.name ?? row?.card?.name ?? row?.name;
+  return payload.cards
+    .map((entry) => {
+      const quantity = Number(entry?.quantity);
+      const name = entry?.card?.oracleCard?.name;
 
-      if (!name) {
+      if (!name || !Number.isFinite(quantity)) {
         return null;
       }
 
-      return { name, quantity: Number(quantity) || 1 };
+      return { name, quantity: Math.max(0, Math.floor(quantity)) };
     })
-    .filter(Boolean);
+    .filter((entry) => entry && entry.quantity > 0);
 }
 
 export async function getDeck(deckId) {
@@ -67,43 +62,39 @@ export async function getDeck(deckId) {
     throw new ArchidektError('api_changed');
   }
 
-  const cards = parseDeckCards(payload);
-
   return {
     id: payload.id,
     name: payload.name,
-    cards,
+    cards: parseDeckCards(payload),
   };
 }
 
 export async function getFolder(folderId) {
   const payload = await archidektFetch(`/folders/${folderId}/`);
 
-  const deckRows = Array.isArray(payload?.decks) ? payload.decks : payload?.results;
-  if (!payload?.id || !payload?.name || !Array.isArray(deckRows)) {
+  // Expected folder shape includes decks: [{ id, name }]
+  if (!payload?.id || !payload?.name || !Array.isArray(payload?.decks)) {
     throw new ArchidektError('api_changed');
   }
-
-  const decks = deckRows
-    .map((deck) => ({ id: deck?.id, name: deck?.name }))
-    .filter((deck) => deck.id && deck.name);
 
   return {
     id: payload.id,
     name: payload.name,
-    decks,
+    decks: payload.decks
+      .map((deck) => ({ id: deck?.id, name: deck?.name }))
+      .filter((deck) => deck.id && deck.name),
   };
 }
 
 export async function getUserDecks(username) {
   const payload = await archidektFetch(`/users/${encodeURIComponent(username)}/decks/`);
 
-  const decks = Array.isArray(payload?.results) ? payload.results : payload;
-  if (!Array.isArray(decks)) {
+  // Expected user deck listing is paginated: { results: [{ id, name, updatedAt|updated_at }] }
+  if (!Array.isArray(payload?.results)) {
     throw new ArchidektError('api_changed');
   }
 
-  return decks
+  return payload.results
     .map((deck) => ({
       id: deck?.id,
       name: deck?.name,
