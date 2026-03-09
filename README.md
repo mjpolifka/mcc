@@ -41,7 +41,8 @@ npm run preview
 
 ## Notes
 
-- This app is browser-only (no backend server).
+- Archidekt requests are routed through a Vite server-side proxy at `/api/archidekt` to avoid browser CORS issues.
+- Scryfall requests are routed through `/api/scryfall` and de-duplicated in-flight to reduce 429/rate-limit failures during deck audits.
 - It uses:
   - Scryfall API for card/printing data
   - Archidekt API for deck/folder/user data

@@ -1,32 +1,14 @@
 import { ArchidektError } from './errors';
 
-const BASE_URLS = [
-  'https://api.archidekt.com',
-  'https://archidekt.com/api',
-];
+const SERVER_PROXY_BASE = '/api/archidekt';
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchFromAnyBase(path) {
-  let lastError = null;
-
-  for (const baseUrl of BASE_URLS) {
-    try {
-      const response = await fetch(`${baseUrl}${path}`);
-      return response;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw lastError || new Error('No Archidekt base URL reachable');
-}
-
 async function archidektFetch(path, retries = 2, attempt = 0) {
   try {
-    const response = await fetchFromAnyBase(path);
+    const response = await fetch(`${SERVER_PROXY_BASE}${path}`);
 
     if (response.status === 404 || response.status === 403) {
       throw new ArchidektError('not_found');
@@ -44,8 +26,8 @@ async function archidektFetch(path, retries = 2, attempt = 0) {
 
     const looksLikeCors = error instanceof TypeError;
     const detail = looksLikeCors
-      ? 'request blocked before response (likely CORS for this origin); try running through a same-origin proxy or deployed domain'
-      : 'unable to reach Archidekt API';
+      ? 'request blocked before response (likely local proxy/network issue)'
+      : 'unable to reach Archidekt API through server proxy';
 
     if (attempt >= retries) {
       throw new ArchidektError('network', detail);
