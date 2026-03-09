@@ -1,60 +1,880 @@
 {
   "version": "1.0.0",
   "sets": [
-    { "code": "lea", "name": "Limited Edition Alpha", "category": "banned" },
-    { "code": "leb", "name": "Limited Edition Beta", "category": "banned" },
-    { "code": "2ed", "name": "Unlimited Edition", "category": "banned" },
-    { "code": "3ed", "name": "Revised Edition", "category": "banned" },
-    { "code": "4ed", "name": "Fourth Edition", "category": "banned" },
-    { "code": "5ed", "name": "Fifth Edition", "category": "banned" },
-    { "code": "6ed", "name": "Classic Sixth Edition", "category": "banned" },
-    { "code": "7ed", "name": "Seventh Edition", "category": "banned" },
-    { "code": "8ed", "name": "Eighth Edition", "category": "banned" },
-    { "code": "9ed", "name": "Ninth Edition", "category": "banned" },
-    { "code": "10e", "name": "Tenth Edition", "category": "banned" },
-    { "code": "m10", "name": "Magic 2010", "category": "banned" },
-    { "code": "m11", "name": "Magic 2011", "category": "banned" },
-    { "code": "m12", "name": "Magic 2012", "category": "banned" },
-    { "code": "m13", "name": "Magic 2013", "category": "banned" },
-    { "code": "m14", "name": "Magic 2014", "category": "banned" },
-    { "code": "m15", "name": "Magic 2015", "category": "banned" },
-    { "code": "ori", "name": "Magic Origins", "category": "banned" },
-    { "code": "dom", "name": "Dominaria", "category": "banned" },
-    { "code": "war", "name": "War of the Spark", "category": "banned" },
-    { "code": "eld", "name": "Throne of Eldraine", "category": "banned" },
-    { "code": "iko", "name": "Ikoria: Lair of Behemoths", "category": "banned" },
-    { "code": "znr", "name": "Zendikar Rising", "category": "banned" },
-    { "code": "khm", "name": "Kaldheim", "category": "banned" },
-    { "code": "neo", "name": "Kamigawa: Neon Dynasty", "category": "banned" },
-    { "code": "snc", "name": "Streets of New Capenna", "category": "banned" },
-    { "code": "dmu", "name": "Dominaria United", "category": "banned" },
-    { "code": "bro", "name": "The Brothers' War", "category": "banned" },
-    { "code": "one", "name": "Phyrexia: All Will Be One", "category": "banned" },
-    { "code": "mom", "name": "March of the Machine", "category": "banned" },
-    { "code": "woe", "name": "Wilds of Eldraine", "category": "banned" },
-    { "code": "lci", "name": "The Lost Caverns of Ixalan", "category": "banned" },
-    { "code": "mkm", "name": "Murders at Karlov Manor", "category": "banned" },
-    { "code": "otj", "name": "Outlaws of Thunder Junction", "category": "banned" },
-    { "code": "blb", "name": "Bloomburrow", "category": "banned" },
-    { "code": "dsk", "name": "Duskmourn: House of Horror", "category": "banned" },
-    { "code": "c13", "name": "Commander 2013", "category": "banned" },
-    { "code": "c14", "name": "Commander 2014", "category": "banned" },
-    { "code": "c15", "name": "Commander 2015", "category": "banned" },
-    { "code": "c16", "name": "Commander 2016", "category": "banned" },
-    { "code": "c17", "name": "Commander 2017", "category": "banned" },
-    { "code": "c18", "name": "Commander 2018", "category": "banned" },
-    { "code": "c19", "name": "Commander 2019", "category": "banned" },
-    { "code": "c20", "name": "Commander 2020", "category": "banned" },
-    { "code": "cmr", "name": "Commander Legends", "category": "banned" },
-    { "code": "mic", "name": "Innistrad: Midnight Hunt Commander", "category": "banned" },
-    { "code": "vow", "name": "Innistrad: Crimson Vow", "category": "banned" },
-    { "code": "clb", "name": "Commander Legends: Battle for Baldur's Gate", "category": "banned" },
-    { "code": "sld", "name": "Secret Lair Drop", "category": "ignored" },
-    { "code": "mps", "name": "Masterpiece Series", "category": "ignored" },
-    { "code": "exp", "name": "Zendikar Expeditions", "category": "ignored" },
-    { "code": "inv", "name": "Amonkhet Invocations", "category": "ignored" },
-    { "code": "w17", "name": "Welcome Deck 2017", "category": "ignored" },
-    { "code": "prm", "name": "Magic Promo", "category": "ignored" },
-    { "code": "fmb1", "name": "Mystery Booster Playtest Cards", "category": "ignored" }
+    {
+      "code": "SLD",
+      "name": "Secret Lairs",
+      "category": "ignored"
+    },
+    {
+      "code": "SLP",
+      "name": "Secret Lair Showdown",
+      "category": "ignored"
+    },
+    {
+      "code": "SLC",
+      "name": "Secret Lair 30th Anniversary Countdown Kit",
+      "category": "ignored"
+    },
+    {
+      "code": "SPG",
+      "name": "Special Guests",
+      "category": "ignored"
+    },
+    {
+      "code": "HOP",
+      "name": "Planechase",
+      "category": "ignored"
+    },
+    {
+      "code": "PLST",
+      "name": "The List",
+      "category": "ignored"
+    },
+    {
+      "code": "PRM",
+      "name": "MTGO Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "SCH",
+      "name": "Store Championships",
+      "category": "ignored"
+    },
+    {
+      "code": "F01",
+      "name": "Friday Night Magic 2001",
+      "category": "ignored"
+    },
+    {
+      "code": "F02",
+      "name": "Friday Night Magic 2002",
+      "category": "ignored"
+    },
+    {
+      "code": "F03",
+      "name": "Friday Night Magic 2003",
+      "category": "ignored"
+    },
+    {
+      "code": "F04",
+      "name": "Friday Night Magic 2004",
+      "category": "ignored"
+    },
+    {
+      "code": "F05",
+      "name": "Friday Night Magic 2005",
+      "category": "ignored"
+    },
+    {
+      "code": "F06",
+      "name": "Friday Night Magic 2006",
+      "category": "ignored"
+    },
+    {
+      "code": "F07",
+      "name": "Friday Night Magic 2007",
+      "category": "ignored"
+    },
+    {
+      "code": "F08",
+      "name": "Friday Night Magic 2008",
+      "category": "ignored"
+    },
+    {
+      "code": "F09",
+      "name": "Friday Night Magic 2009",
+      "category": "ignored"
+    },
+    {
+      "code": "F10",
+      "name": "Friday Night Magic 2010",
+      "category": "ignored"
+    },
+    {
+      "code": "F11",
+      "name": "Friday Night Magic 2011",
+      "category": "ignored"
+    },
+    {
+      "code": "F12",
+      "name": "Friday Night Magic 2012",
+      "category": "ignored"
+    },
+    {
+      "code": "F13",
+      "name": "Friday Night Magic 2013",
+      "category": "ignored"
+    },
+    {
+      "code": "F14",
+      "name": "Friday Night Magic 2014",
+      "category": "ignored"
+    },
+    {
+      "code": "F15",
+      "name": "Friday Night Magic 2015",
+      "category": "ignored"
+    },
+    {
+      "code": "JGP",
+      "name": "Judge Gift Cards 1998",
+      "category": "ignored"
+    },
+    {
+      "code": "G00",
+      "name": "Judge Gift Cards 2000",
+      "category": "ignored"
+    },
+    {
+      "code": "G01",
+      "name": "Judge Gift Cards 2001",
+      "category": "ignored"
+    },
+    {
+      "code": "G02",
+      "name": "Judge Gift Cards 2002",
+      "category": "ignored"
+    },
+    {
+      "code": "G03",
+      "name": "Judge Gift Cards 2003",
+      "category": "ignored"
+    },
+    {
+      "code": "G04",
+      "name": "Judge Gift Cards 2004",
+      "category": "ignored"
+    },
+    {
+      "code": "G05",
+      "name": "Judge Gift Cards 2005",
+      "category": "ignored"
+    },
+    {
+      "code": "G06",
+      "name": "Judge Gift Cards 2006",
+      "category": "ignored"
+    },
+    {
+      "code": "G07",
+      "name": "Judge Gift Cards 2007",
+      "category": "ignored"
+    },
+    {
+      "code": "G08",
+      "name": "Judge Gift Cards 2008",
+      "category": "ignored"
+    },
+    {
+      "code": "G09",
+      "name": "Judge Gift Cards 2009",
+      "category": "ignored"
+    },
+    {
+      "code": "G10",
+      "name": "Judge Gift Cards 2010",
+      "category": "ignored"
+    },
+    {
+      "code": "G11",
+      "name": "Judge Gift Cards 2011",
+      "category": "ignored"
+    },
+    {
+      "code": "J12",
+      "name": "Judge Gift Cards 2012",
+      "category": "ignored"
+    },
+    {
+      "code": "J13",
+      "name": "Judge Gift Cards 2013",
+      "category": "ignored"
+    },
+    {
+      "code": "J14",
+      "name": "Judge Gift Cards 2014",
+      "category": "ignored"
+    },
+    {
+      "code": "J15",
+      "name": "Judge Gift Cards 2015",
+      "category": "ignored"
+    },
+    {
+      "code": "J16",
+      "name": "Judge Gift Cards 2016",
+      "category": "ignored"
+    },
+    {
+      "code": "J17",
+      "name": "Judge Gift Cards 2017",
+      "category": "ignored"
+    },
+    {
+      "code": "J18",
+      "name": "Judge Gift Cards 2018",
+      "category": "ignored"
+    },
+    {
+      "code": "J22",
+      "name": "Jumpstart 22",
+      "category": "ignored"
+    },
+    {
+      "code": "J23",
+      "name": "Jumpstart 23",
+      "category": "ignored"
+    },
+    {
+      "code": "J24",
+      "name": "Jumpstart 24",
+      "category": "ignored"
+    },
+    {
+      "code": "J25",
+      "name": "Foundations Jumpstart",
+      "category": "ignored"
+    },
+    {
+      "code": "P08",
+      "name": "Magic Player Rewards 2008",
+      "category": "ignored"
+    },
+    {
+      "code": "P09",
+      "name": "Magic Player Rewards 2009",
+      "category": "ignored"
+    },
+    {
+      "code": "P10",
+      "name": "Magic Player Rewards 2010",
+      "category": "ignored"
+    },
+    {
+      "code": "P22",
+      "name": "Judge Gift Cards 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "PZ1",
+      "name": "Legendary Cube Prize Pack",
+      "category": "ignored"
+    },
+    {
+      "code": "PZ2",
+      "name": "Treasure Chest",
+      "category": "ignored"
+    },
+    {
+      "code": "PIDW",
+      "name": "IDW Comics Insert",
+      "category": "ignored"
+    },
+    {
+      "code": "PURL",
+      "name": "Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PMEI",
+      "name": "Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PKLD",
+      "name": "Kaladesh Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PDGM",
+      "name": "Dragon's Maze Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PDTK",
+      "name": "Dragons of Tarkir Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PANA",
+      "name": "MTG Arena Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PHPR",
+      "name": "HarperPrism Book Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "P30M",
+      "name": "30th Anniversary Misc Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "P30A",
+      "name": "30th Anniversary Play Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PSVC",
+      "name": "Summer Vacation Promos 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "PFDN",
+      "name": "Foundations Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "RFIN",
+      "name": "FIN Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PF19",
+      "name": "MagicFest 2019",
+      "category": "ignored"
+    },
+    {
+      "code": "PF20",
+      "name": "MagicFest 2020",
+      "category": "ignored"
+    },
+    {
+      "code": "PF21",
+      "name": "MagicFest 2021",
+      "category": "ignored"
+    },
+    {
+      "code": "PF22",
+      "name": "MagicFest 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "PF23",
+      "name": "MagicFest 2023",
+      "category": "ignored"
+    },
+    {
+      "code": "PF24",
+      "name": "MagicFest 2024",
+      "category": "ignored"
+    },
+    {
+      "code": "PF25",
+      "name": "MagicFest 2025",
+      "category": "ignored"
+    },
+    {
+      "code": "PLGM",
+      "name": "DCI Legend Membership",
+      "category": "ignored"
+    },
+    {
+      "code": "DCI",
+      "name": "DCI Promos",
+      "category": "ignored"
+    },
+    {
+      "code": "PJAS",
+      "name": "Junior APAC Series",
+      "category": "ignored"
+    },
+    {
+      "code": "PJJT",
+      "name": "Japan Junior Tournament",
+      "category": "ignored"
+    },
+    {
+      "code": "PJSE",
+      "name": "Junior Series Europe",
+      "category": "ignored"
+    },
+    {
+      "code": "PSUS",
+      "name": "Junior Super Series",
+      "category": "ignored"
+    },
+    {
+      "code": "PUMA",
+      "name": "Ultimate Box Topper",
+      "category": "ignored"
+    },
+    {
+      "code": "PEWK",
+      "name": "Eternal Weekend",
+      "category": "ignored"
+    },
+    {
+      "code": "PCBB",
+      "name": "Cowboy Bebop",
+      "category": "ignored"
+    },
+    {
+      "code": "PL23",
+      "name": "Year of the Rabbit 2023",
+      "category": "ignored"
+    },
+    {
+      "code": "PL24",
+      "name": "Year of the Dragon 2024",
+      "category": "ignored"
+    },
+    {
+      "code": "PL25",
+      "name": "Year of the Snake 2025",
+      "category": "ignored"
+    },
+    {
+      "code": "PW21",
+      "name": "Wizards Play Network 2021",
+      "category": "ignored"
+    },
+    {
+      "code": "PW22",
+      "name": "Wizards Play Network 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "PW23",
+      "name": "Wizards Play Network 2023",
+      "category": "ignored"
+    },
+    {
+      "code": "PW24",
+      "name": "Wizards Play Network 2024",
+      "category": "ignored"
+    },
+    {
+      "code": "PW25",
+      "name": "Wizards Play Network 2025",
+      "category": "ignored"
+    },
+    {
+      "code": "PLG20",
+      "name": "Love Your LGS 2020",
+      "category": "ignored"
+    },
+    {
+      "code": "PLG21",
+      "name": "Love Your LGS 2021",
+      "category": "ignored"
+    },
+    {
+      "code": "PLG22",
+      "name": "Love Your LGS 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "PLG23",
+      "name": "Love Your LGS 2023",
+      "category": "ignored"
+    },
+    {
+      "code": "PLG24",
+      "name": "Love Your LGS 2024",
+      "category": "ignored"
+    },
+    {
+      "code": "PAL04",
+      "name": "Arena League 2004",
+      "category": "ignored"
+    },
+    {
+      "code": "PAL05",
+      "name": "Arena League 2005",
+      "category": "ignored"
+    },
+    {
+      "code": "PAL06",
+      "name": "Arena League 2006",
+      "category": "ignored"
+    },
+    {
+      "code": "SS1",
+      "name": "Signature Spellbook: Jace",
+      "category": "ignored"
+    },
+    {
+      "code": "SS2",
+      "name": "Signature Spellbook: Gideon",
+      "category": "ignored"
+    },
+    {
+      "code": "SS3",
+      "name": "Signature Spellbook: Chandra",
+      "category": "ignored"
+    },
+    {
+      "code": "V09",
+      "name": "From the Vault: Exiled",
+      "category": "ignored"
+    },
+    {
+      "code": "V12",
+      "name": "From the Vault: Realms",
+      "category": "ignored"
+    },
+    {
+      "code": "V13",
+      "name": "From the Vault: Twenty",
+      "category": "ignored"
+    },
+    {
+      "code": "DRB",
+      "name": "From the Vault: Dragons",
+      "category": "ignored"
+    },
+    {
+      "code": "CC1",
+      "name": "Commander Collection: Green",
+      "category": "ignored"
+    },
+    {
+      "code": "CC2",
+      "name": "Commander Collection: Black",
+      "category": "ignored"
+    },
+    {
+      "code": "STA",
+      "name": "Strixhaven Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "BRR",
+      "name": "Brother's War Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "MUL",
+      "name": "March of the Machine Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "WOT",
+      "name": "Wilds of Eldrane Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "OTP",
+      "name": "Breaking News (Outlaws) Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "BIG",
+      "name": "The Big Score (Outlaws) Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "H2R",
+      "name": "Modern Horizons Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "FCA",
+      "name": "Final Fantasy Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "EOS",
+      "name": "Edge of Eternities Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "MAR",
+      "name": "Marvel Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "OMB",
+      "name": "Omenpaths Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "EXP",
+      "name": "Zendikar Expeditions",
+      "category": "ignored"
+    },
+    {
+      "code": "MPS",
+      "name": "Kaladesh Inventions",
+      "category": "ignored"
+    },
+    {
+      "code": "MP2",
+      "name": "Amonkhet Invocations",
+      "category": "ignored"
+    },
+    {
+      "code": "ZNE",
+      "name": "Zendikar Rising Expeditions",
+      "category": "ignored"
+    },
+    {
+      "code": "MED",
+      "name": "Mythic Edition",
+      "category": "ignored"
+    },
+    {
+      "code": "ME1",
+      "name": "Masters Edition",
+      "category": "ignored"
+    },
+    {
+      "code": "ME2",
+      "name": "Masters Edition 2",
+      "category": "ignored"
+    },
+    {
+      "code": "ME3",
+      "name": "Masters Edition 3",
+      "category": "ignored"
+    },
+    {
+      "code": "ME4",
+      "name": "Masters Edition 4",
+      "category": "ignored"
+    },
+    {
+      "code": "VMA",
+      "name": "Vintage Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "TPR",
+      "name": "Tempest Remastered",
+      "category": "ignored"
+    },
+    {
+      "code": "MMA",
+      "name": "Modern Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "MM2",
+      "name": "Modern Masters 2015",
+      "category": "ignored"
+    },
+    {
+      "code": "MM3",
+      "name": "Modern Masters 2017",
+      "category": "ignored"
+    },
+    {
+      "code": "EMA",
+      "name": "Eternal Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "IMA",
+      "name": "Iconic Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "A25",
+      "name": "Masters 25",
+      "category": "ignored"
+    },
+    {
+      "code": "UMA",
+      "name": "Ultimate Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "CMM",
+      "name": "Commander Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "2XM",
+      "name": "Double Masters",
+      "category": "ignored"
+    },
+    {
+      "code": "2X2",
+      "name": "Double Masters 2022",
+      "category": "ignored"
+    },
+    {
+      "code": "TSR",
+      "name": "Time Spiral Remastered",
+      "category": "ignored"
+    },
+    {
+      "code": "DMR",
+      "name": "Dominaria Remastered",
+      "category": "ignored"
+    },
+    {
+      "code": "RVR",
+      "name": "Ravnica Remastered",
+      "category": "ignored"
+    },
+    {
+      "code": "INR",
+      "name": "Innistrad Remastered",
+      "category": "ignored"
+    },
+    {
+      "code": "DBL",
+      "name": "Innistrad Double-Feature",
+      "category": "ignored"
+    },
+    {
+      "code": "AKR",
+      "name": "Amonkhet Remasterd",
+      "category": "ignored"
+    },
+    {
+      "code": "KLR",
+      "name": "Kaladesh Remasterd",
+      "category": "ignored"
+    },
+    {
+      "code": "SIR",
+      "name": "Shadows over Innistrad Remasterd",
+      "category": "ignored"
+    },
+    {
+      "code": "SIS",
+      "name": "Bonus Sheet",
+      "category": "ignored"
+    },
+    {
+      "code": "PIO",
+      "name": "Pioneer Masters # Arena-only",
+      "category": "ignored"
+    },
+    {
+      "code": "C20",
+      "name": "Commander 2020 (Ikoria)",
+      "category": "ignored"
+    },
+    {
+      "code": "ZNC",
+      "name": "Zendikar Rising Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "KHC",
+      "name": "Kaldheim Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "C21",
+      "name": "Commander 2021 (Strixhaven)",
+      "category": "ignored"
+    },
+    {
+      "code": "AFC",
+      "name": "Dungeons & Dragons: Adventures in the Forgotten Realms Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "MIC",
+      "name": "Innistrad: Midnight Hunt Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "VOC",
+      "name": "Innistrad: Crimson Vow Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "NEC",
+      "name": "Kamigawa: Neon Dynasty Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "NCC",
+      "name": "Streets of New Capenna Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "DMC",
+      "name": "Dominaria United Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "BRC",
+      "name": "The Brothers' War Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "ONC",
+      "name": "Phyrexia: All Will Be One Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "MOC",
+      "name": "March of the Machine Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "LTC",
+      "name": "Lord of the Rings Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "WOC",
+      "name": "Wilds of Eldraine Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "LCC",
+      "name": "The Lost Caverns of Ixalan Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "MKC",
+      "name": "Murders at Karlov Manor Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "OTC",
+      "name": "Outlaws of Thunder Junction Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "M3C",
+      "name": "Modern Horizons 3 Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "BLC",
+      "name": "Bloomburrow Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "DSC",
+      "name": "Duskmourn: House of Horror Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "DRC",
+      "name": "Aetherdrift Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "TDC",
+      "name": "Tarkir: Dragonstorm/Commander decks",
+      "category": "ignored"
+    },
+    {
+      "code": "SCD",
+      "name": "Starter Commander Decks",
+      "category": "ignored"
+    },
+    {
+      "code": "CMA",
+      "name": "Commander Anthology",
+      "category": "ignored"
+    },
+    {
+      "code": "DSK",
+      "name": "Duskmourn: House of Horror",
+      "category": "banned"
+    }
   ]
 }
