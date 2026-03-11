@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { auditCard, auditDeck, auditFolder, auditUser } from './lib/audit';
+import { clearCache } from './lib/cache';
 
 const t = {
   bg: '#0f1117',
@@ -570,6 +571,8 @@ export default function App() {
   const [view, setView] = useState('entry');
   const [history, setHistory] = useState(loadHistory);
   const [entryMode, setEntryMode] = useState('card');
+  const [showClearCacheModal, setShowClearCacheModal] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
@@ -590,6 +593,13 @@ export default function App() {
     await audit.run(mode, value, nameHint);
   };
 
+  const handleConfirmClearCache = async () => {
+    setIsClearingCache(true);
+    await clearCache();
+    setIsClearingCache(false);
+    setShowClearCacheModal(false);
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: t.bg, color: t.text, fontFamily: "'Inter', 'Helvetica Neue', sans-serif" }}>
       <style>{`
@@ -600,14 +610,84 @@ export default function App() {
         button:hover { opacity: 0.82; }
       `}</style>
 
-      <div style={{ borderBottom: `1px solid ${t.border}`, padding: '13px 32px', display: 'flex', alignItems: 'center', background: t.surface }}>
+      <div style={{ borderBottom: `1px solid ${t.border}`, padding: '13px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: t.surface }}>
         <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em', color: t.text }}>Middle Class Commander</span>
+        <button
+          onClick={() => setShowClearCacheModal(true)}
+          style={{
+            border: `1px solid ${t.border}`,
+            borderRadius: 6,
+            background: 'transparent',
+            color: t.textDim,
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '6px 12px',
+            cursor: 'pointer',
+          }}
+        >
+          Clear Cache
+        </button>
       </div>
 
       <div style={{ padding: '0 32px' }}>
         {view === 'entry' && <EntryPage onSubmit={handleSubmit} history={history} mode={entryMode} onModeChange={setEntryMode} />}
         {view === 'results' && <ResultsView audit={audit} onBack={() => setView('entry')} />}
       </div>
+
+      {showClearCacheModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: '#000000a8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <div style={{ width: '100%', maxWidth: 420, background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 20 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: t.text, marginBottom: 8 }}>Delete cached card data?</div>
+            <p style={{ fontSize: 13, color: t.textMuted, marginBottom: 16 }}>
+              This will remove cached results for all cards. Future checks may take longer until cache is rebuilt.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                onClick={() => setShowClearCacheModal(false)}
+                disabled={isClearingCache}
+                style={{
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 6,
+                  background: 'transparent',
+                  color: t.textDim,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '8px 12px',
+                  cursor: isClearingCache ? 'default' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmClearCache}
+                disabled={isClearingCache}
+                style={{
+                  border: 'none',
+                  borderRadius: 6,
+                  background: t.banned,
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '8px 12px',
+                  cursor: isClearingCache ? 'default' : 'pointer',
+                }}
+              >
+                {isClearingCache ? 'Clearing…' : 'Delete Cache'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
