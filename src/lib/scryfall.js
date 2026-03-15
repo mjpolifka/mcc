@@ -1,9 +1,7 @@
-import setData from '../data/sets.json';
-import { db } from './db';
+import setData from '../data/sets.json' with { type: 'json' };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CACHE_TTL_MS = 30 * DAY_MS;
-const UA = 'MiddleClassCommander/1.0 (https://github.com/example/mcc)';
 const SCRYFALL_PROXY_BASE = '/api/scryfall';
 
 const bannedSetCodes = new Set(
@@ -23,9 +21,40 @@ const queueState = {
   pumping: false,
 };
 
+function createInMemoryDb() {
+  const cardCacheStore = new Map();
+  const setListMetaStore = new Map();
+
+  return {
+    cardCache: {
+      async get(key) {
+        return cardCacheStore.get(key);
+      },
+      async put(value) {
+        cardCacheStore.set(value.cardName, value);
+      },
+    },
+    setListMeta: {
+      async get(key) {
+        return setListMetaStore.get(key);
+      },
+      async put(value) {
+        setListMetaStore.set(value.key, value);
+      },
+    },
+  };
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const runtime = {
+  fetchImpl: (...args) => fetch(...args),
+  sleepImpl: sleep,
+  now: () => Date.now(),
+  dbImpl: createInMemoryDb(),
+};
 
 function buildScryfallUrl(path) {
   return `${SCRYFALL_PROXY_BASE}${path}`;
@@ -51,10 +80,10 @@ function pumpQueue() {
 
   const tick = async () => {
     while (queueState.active < queueState.maxConcurrent && queueState.queue.length > 0) {
-      const now = Date.now();
+      const now = runtime.now();
       const wait = Math.max(0, queueState.lastStartAt + queueState.minDelayMs - now);
       if (wait > 0) {
-        await sleep(wait);
+        await runtime.sleepImpl(wait);
       }
 
       const next = queueState.queue.shift();
@@ -62,7 +91,7 @@ function pumpQueue() {
         break;
       }
 
-      queueState.lastStartAt = Date.now();
+      queueState.lastStartAt = runtime.now();
       queueState.active += 1;
 
       next()
@@ -96,9 +125,9 @@ function enqueueRequest(executor) {
 async function scryfallFetch(path, retries = 4, attempt = 0) {
   try {
     const response = await enqueueRequest(() =>
-      fetch(buildScryfallUrl(path), {
+      runtime.fetchImpl(buildScryfallUrl(path), {
         headers: {
-          'User-Agent': UA,
+          Accept: 'application/json;q=0.9,*/*;q=0.8',
         },
       }),
     );
@@ -112,7 +141,7 @@ async function scryfallFetch(path, retries = 4, attempt = 0) {
         return { failed: 'rate_limited' };
       }
 
-      await sleep(getRetryDelayMs(response, attempt, 400));
+      await runtime.sleepImpl(getRetryDelayMs(response, attempt, 400));
       return scryfallFetch(path, retries, attempt + 1);
     }
 
@@ -126,7 +155,7 @@ async function scryfallFetch(path, retries = 4, attempt = 0) {
       return { failed: 'network' };
     }
 
-    await sleep(2 ** attempt * 300);
+    await runtime.sleepImpl(2 ** attempt * 300);
     return scryfallFetch(path, retries, attempt + 1);
   }
 }
@@ -141,15 +170,19 @@ function cacheStillValid(entry) {
   }
 
   const cachedAt = new Date(entry.cachedAt).getTime();
-  const notExpired = Date.now() - cachedAt < CACHE_TTL_MS;
+  const notExpired = runtime.now() - cachedAt < CACHE_TTL_MS;
   const versionMatches = entry.setListVersion === setData.version;
 
   return notExpired && versionMatches;
 }
 
+export function setScryfallDb(dbImpl) {
+  runtime.dbImpl = dbImpl;
+}
+
 export async function checkForSetListUpdatesIfStale() {
-  const meta = await db.setListMeta.get('lastSetCheck');
-  if (meta?.checkedAt && Date.now() - new Date(meta.checkedAt).getTime() < DAY_MS) {
+  const meta = await runtime.dbImpl.setListMeta.get('lastSetCheck');
+  if (meta?.checkedAt && runtime.now() - new Date(meta.checkedAt).getTime() < DAY_MS) {
     return;
   }
 
@@ -164,7 +197,7 @@ export async function checkForSetListUpdatesIfStale() {
     console.warn('New Scryfall sets not in sets.json:', unknownSets.map((entry) => entry.code));
   }
 
-  await db.setListMeta.put({ key: 'lastSetCheck', checkedAt: new Date().toISOString() });
+  await runtime.dbImpl.setListMeta.put({ key: 'lastSetCheck', checkedAt: new Date(runtime.now()).toISOString() });
 }
 
 async function checkCardUncached(normalized) {
@@ -198,11 +231,11 @@ async function checkCardUncached(normalized) {
 
   const result = isBanned ? 'banned' : 'legal';
 
-  await db.cardCache.put({
+  await runtime.dbImpl.cardCache.put({
     cardName: normalized,
     result,
     printings,
-    cachedAt: new Date().toISOString(),
+    cachedAt: new Date(runtime.now()).toISOString(),
     setListVersion: setData.version,
   });
 
@@ -215,7 +248,7 @@ export async function checkCard(cardName) {
     return { result: 'failed', reason: 'not_found' };
   }
 
-  const cached = await db.cardCache.get(normalized);
+  const cached = await runtime.dbImpl.cardCache.get(normalized);
   if (cacheStillValid(cached)) {
     return { result: cached.result, printings: cached.printings };
   }
@@ -232,3 +265,21 @@ export async function checkCard(cardName) {
   inFlightByCardName.set(normalized, lookupPromise);
   return lookupPromise;
 }
+
+export function __setScryfallTestRuntime(overrides = {}) {
+  Object.assign(runtime, overrides);
+}
+
+export function __resetScryfallTestState() {
+  inFlightByCardName.clear();
+  queueState.queue = [];
+  queueState.active = 0;
+  queueState.lastStartAt = 0;
+  queueState.pumping = false;
+}
+
+export const __scryfallTestConstants = {
+  DAY_MS,
+  CACHE_TTL_MS,
+  queueState,
+};
