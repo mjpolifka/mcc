@@ -1,0 +1,1 @@
+My friends and I have a custom MTG Commander format we like to play called "Middle Class".  If a card has been printed in Rare or Mythic in any of the sets in this json file I pasted, then it's banned.  So we basically play with uncommons and below, but there are so many "extra sets" with what feels like arbitrary cards at Rare that we need the list.
