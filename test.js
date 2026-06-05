@@ -1,8 +1,10 @@
 const { checkCard } = require("./mcc");
 
-async function main() {
-  const value = await checkCard("commander");
-  console.log(`---\nreturn value: ${value}`);
+async function main(query) {
+  const banned = await checkCard(query);
+  if (banned == -1) {console.log("Error");}
+  else if (banned == 1) {console.log(`${query}: banned`);}
+  else {console.log(`${query}: legal`);}
 }
 
-main();
+main("smothering tithe");
