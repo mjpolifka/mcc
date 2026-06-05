@@ -24,6 +24,7 @@ async function searchScryfallForBanned(query) {
 }
 
 async function checkCard(query) {
+  // TODO: if the query doesn't match an existing card, return -1 or maybe 2 or maybe we change to strings at this point
   query = query.toLowerCase();
   const data = await searchScryfallForBanned(query);
 

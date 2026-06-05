@@ -2,12 +2,19 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+const { checkCard } = require('./mcc');
+
+
 app.get('/', (req, res) => {res.send('I think I can serve the frontend from here later.');})
 
-app.get('/card/:id', async (req, res)  => {
+app.get('/card/:name', async (req, res)  => {
   // TODO: validate input before using it
-  const data = await getCardStatus(req.params['id']);
-  res.send(`card data: ${data}`);
+  const name = req.params['name'];
+  const data = await checkCard(name);
+  if (data == -1) {res.send(`${name}: error`);}
+  else if (data == 0) {res.send(`${name}: legal`);}
+  else if (data == 1) {res.send(`${name}: banned`);}
+  else {res.send("Error: return value out of scope");}
 })
 
 app.get('/deck/:id', (req, res) => {
@@ -19,25 +26,3 @@ app.get('/banlist', (req, res) => {
 })
 
 app.listen(port, () => {console.log(`Example app listening on port ${port}`);})
-
-
-
-async function getCardStatus(id) {
-  const url = 'https://api.scryfall.com/cards/named?exact=' + id;
-  const response = await fetch(
-    url,
-    {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'MiddleClassCommander/1.0',
-        'Accepts': 'application/json',
-      },
-    });
-  
-  if (!response.ok) {
-    throw new Error(`Bad Scryfall response: ${response.status}, ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data['oracle_id'];
-}
